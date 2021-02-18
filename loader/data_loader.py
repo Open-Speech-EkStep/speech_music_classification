@@ -6,6 +6,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 
 from configs.train_config import SpectConfig
+from models.model import get_conv_output_sizes
 
 def load_audio(audio_path, samp_rate=16000):
     """Loads the audio signal stored at the given path."""
@@ -63,3 +64,24 @@ class SpectrogramDataset(Dataset, SpectrogramParser):
 
     def __len__(self):
         return self.size
+
+
+def collate_fn(batch):
+    print("in the collate")
+    print(type(batch))
+
+    feats = [sample[0].transpose(0,1) for sample in batch] # List of features of shape [T, 257]
+    lengths = [feat.shape[0] for feat in feats] # The number of time steps in each sample
+    print("lengths ", lengths)
+    conv_out_lengths = get_conv_output_sizes(lengths) # The size of conv block output for each sample
+    print('conv lengths ', conv_out_lengths)
+    padded = torch.nn.utils.rnn.pad_sequence(feats) # Padded batch of samples. Shape: [T, B, 257]
+    print(padded.shape)
+    max_len = max(conv_out_lengths)
+    attn_mask = [np.array(list(range(1, 1+max_len))) > length for length in conv_out_lengths] # 1 if t>len and 0 if t<=len
+    attn_mask = torch.tensor(attn_mask)
+    print(attn_mask.shape)
+    mask_sum = attn_mask.sum(axis=1)
+    print(mask_sum)
+
+    return padded.permute(1, 2, 0), torch.tensor(conv_out_lengths), attn_mask
