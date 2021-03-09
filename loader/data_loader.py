@@ -84,4 +84,4 @@ def collate_fn(batch):
     mask_sum = attn_mask.sum(axis=1)
     print(mask_sum)
 
-    return padded.permute(1, 2, 0), torch.tensor(conv_out_lengths), attn_mask
+    return padded.permute(1, 2, 0), attn_mask, conv_out_lengths
