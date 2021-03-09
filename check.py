@@ -1,8 +1,9 @@
+import torch
+from torch.utils.data import DataLoader
+
 from configs.train_config import SpectConfig
 from loader.data_loader import SpectrogramDataset, collate_fn
 from models.model import Conformer, get_conv_output_sizes
-import torch
-from torch.utils.data import DataLoader
 
 if __name__ == "__main__":
     spect_cfg = SpectConfig()
@@ -15,8 +16,8 @@ if __name__ == "__main__":
     batch = feat.unsqueeze(0)
     print(batch.shape)
 
-    out = model(batch)
-    print("out shape: ", out.shape)
+    # out = model(batch)
+    # print("out shape: ", out.shape)
 
     lengths = get_conv_output_sizes([feat.shape[1]])
     print('conv out lengths: ', lengths)
@@ -25,5 +26,6 @@ if __name__ == "__main__":
     print('data loader len: ', len(loader))
 
     mini_batch = iter(loader).next()
-    out = model(mini_batch[0])
+    out = model(mini_batch[0], mini_batch[1], mini_batch[2])
     print('mini batch output ', out.shape)
+    
